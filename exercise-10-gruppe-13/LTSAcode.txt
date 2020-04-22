@@ -1,0 +1,61 @@
+Oppg 1: 
+MOVE = (north->(south->MOVE|north->STOP)).
+
+Oppg2: 
+RESOURCEX = (get->put->RESOURCEX).
+RESOURCEY = (get->put->RESOURCEY).
+
+PROCESS1 = (ry.put->rx.get->rx.put->PROCESS1).
+
+PROCESS2 = (rx.put->ry.get->ry.put->PROCESS2).
+
+||SYS = (a:PROCESS1 || b:PROCESS2 || {a, b}::ry:RESOURCEY || {a, b}::rx:RESOURCEX ).
+Transitions: 65
+
+LTSA claims that this is a deadlock, while it is actually a livelock. 
+The number of transitions is 65, at which I assume LTSA gives up(?)
+
+
+Oppg3: 
+FORK = (get -> put -> FORK).
+PHIL = (sitdown ->right.get->left.get
+->eat ->right.put->left.put
+->arise->PHIL).
+
+||DINERS(N=5)= forall [i:0..N-1]
+(phil[i]:PHIL ||
+{phil[i].left,phil[((i-1)+N)%N].right}::FORK
+).
+We observe that N = 10 creates (before manual interruption): 
+"States: 2890000 Transitions: 25465457 Memory used: 483585K"
+That implies that the number of philosofers cannot get very high. 
+
+Altered code with one lefthanded philosopher: 
+FORK = (get -> put -> FORK).
+PHIL = (sitdown ->right.get->left.get
+->eat ->right.put->left.put
+->arise->PHIL).
+LHPHIL = (sitdown ->left.get ->right.get 
+->eat -> left.put -> right.put 
+->arise->LHPHIL).
+
+||DINERS(N=4)= forall [i:0..N-1]
+(phil[i]:PHIL ||
+{phil[i].left,phil[((i-1)+N)%N].right}::FORK
+|| phil[5]:LHPHIL || {phil[5].right, phil[1].left}::FORK).
+Produces: 
+
+Compiled: PHIL
+Compiled: FORK
+Compiled: LHPHIL
+Composition:
+DINERS = phil.0:PHIL || {phil.0.left,phil.3.right}::FORK || phil.5:LHPHIL || {phil.5.right,phil.1.left}::FORK || phil.1:PHIL || {phil.1.left,phil.0.right}::FORK || phil.5:LHPHIL || {phil.5.right,phil.1.left}::FORK || phil.2:PHIL || {phil.2.left,phil.1.right}::FORK || phil.5:LHPHIL || {phil.5.right,phil.1.left}::FORK || phil.3:PHIL || {phil.3.left,phil.2.right}::FORK || phil.5:LHPHIL || {phil.5.right,phil.1.left}::FORK
+State Space:
+ 7 * 2 * 7 * 2 * 7 * 2 * 7 * 2 * 7 * 2 * 7 * 2 * 7 * 2 * 7 * 2 = 2 ** 32
+Analysing...
+Depth 31 -- States: 7246 Transitions: 32116 Memory used: 18407K
+No deadlocks/errors
+Analysed in: 33ms
+
+Yes, it solves the deadlock!
+
